@@ -1,0 +1,26 @@
+buildscript {
+    ext.kotlin_version = '1.0.4'
+    apply from: 'dependencies.gradle'
+
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath gradlePlugins.android
+        // Lombok placed here due to https://github.com/evant/android-retrolambda-lombok/issues/10
+        classpath gradlePlugins.lombok
+        classpath gradlePlugins.kotlin
+    }
+    // Exclude the lombok version that the android plugin depends on.
+    configurations.classpath.exclude group: 'com.android.tools.external.lombok'
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,196 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath gradlePlugins.retrolambda
+        classpath gradlePlugins.uptodate
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.ofg.uptodate'
+apply from: '../dependencies.gradle'
+apply plugin: 'me.tatarka.retrolambda'
+
+repositories {
+    mavenCentral()
+}
+
+def gitSha = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
+def gitTimestamp = 'git log -n 1 --format=%at'.execute([], rootDir).text.trim()
+
+/*
+    6th advice from http://www.universalmind.com/blog/10-tips-to-improve-your-gradle-build-time/
+    allows the developer to set minSdk at build in order to take
+    advantage of faster build times leveraging ART in API 21+ without
+    losing mush needed lint checks
+    How to use: `./gradlew installDebug -PminSdk=22`
+ */
+def minSdk = hasProperty('minSdk') ? minSdk : versions.minSdk
+
+android {
+    compileSdkVersion versions.compileSdk as int
+    buildToolsVersion versions.buildTools as String
+
+    defaultConfig {
+
+        applicationId = versions.packagename
+
+        minSdkVersion minSdk as int
+        targetSdkVersion versions.targetSdk as int
+
+        versionCode versions.versionMajor * 10000 + versions.versionMinor * 1000 + versions.versionPatch * 100 + versions.versionBuild
+        versionName "${versions.versionMajor}.${versions.versionMinor}.${versions.versionPatch}"
+
+        buildConfigField 'String', 'GIT_SHA', "\"${gitSha}\""
+        buildConfigField 'long', 'GIT_TIMESTAMP', "${gitTimestamp}"
+
+
+        testApplicationId "${versions.packagename}.tests"
+        testInstrumentationRunner "ru.ltst.u2020mvp.U2020InstrumentationRunner"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("../distribution/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+        release {
+            storeFile file("../distribution/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.dev'
+            versionNameSuffix '-dev'
+            debuggable true
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            debuggable true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), file('proguard-rules.pro')
+            signingConfig signingConfigs.release
+        }
+    }
+
+    lintOptions {
+        textReport true
+        textOutput 'stdout'
+        warning 'InvalidPackage'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+    }
+}
+
+// TODO remove eventually: http://b.android.com/162285
+configurations {
+    internalDebugCompile
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "com.android.support:support-annotations:${SUPPORT_V7_VERSION}"
+        force "com.android.support:recyclerview-v7:${SUPPORT_V7_VERSION}"
+        force "com.android.support:support-v4:${SUPPORT_V4_VERSION}"
+        force libraries.supportAnnotation
+    }
+}
+
+kapt {
+    generateStubs = true
+}
+
+dependencies {
+    //support
+    compile libraries.supportV4
+    compile libraries.supportAnnotation
+    compile libraries.appCompat
+    compile libraries.recyclerView
+    compile libraries.cardView
+    compile libraries.design
+    //dagger
+    compile libraries.dagger
+    kapt libraries.daggerCompiler
+    provided libraries.javax
+    //okhttp
+    compile libraries.okhttp
+    compile libraries.okhttpLog
+    //picasso
+    compile libraries.picasso
+    compile libraries.picassoDownloader
+    //retrofit2
+    compile libraries.retrofit
+    compile libraries.retrofitMoshi
+    compile libraries.retrofitRxJava
+    //timber
+    compile libraries.timber
+    //byteunits
+    compile libraries.byteunits
+    //rx
+    compile libraries.rxbinding
+    compile libraries.rxjava
+    compile libraries.rxandroid
+    //threetenabp
+    compile libraries.threetenabp
+    //rx-preferences
+    compile libraries.rxpreferences
+    //kotlin
+    compile libraries.kotlin
+
+    //--debug--
+    debugCompile libraries.madge
+    debugCompile libraries.scalpel
+    debugCompile libraries.phoenix
+    debugCompile libraries.retrofitMock
+    debugCompile libraries.leakcanary
+    debugCompile libraries.telescope
+    //--release--
+    releaseCompile libraries.leakcanaryNoOp
+
+    //-----tests-----
+    // Espresso 2 Dependencies
+    androidTestCompile libraries.junit
+    androidTestCompile libraries.testRunner
+    androidTestCompile libraries.testRules
+    androidTestCompile libraries.espressoCore
+    kaptAndroidTest libraries.daggerCompiler
+
+    testCompile libraries.mockito
+    testCompile libraries.junit
+}
+
+// change apk name
+android.applicationVariants.all { variant ->
+    for (output in variant.outputs) {
+        def outputFile = output.outputFile
+        if (outputFile != null && outputFile.name.endsWith('.apk')) {
+            def fileName = "${versions.apkname}-${output.name}.apk"
+            output.outputFile = new File(outputFile.parent, fileName)
+        }
+    }
+}
+
+// print build finish time
+gradle.buildFinished { buildResult ->
+    def buildFinishDate = new Date()
+    def formattedDate = buildFinishDate.format('yyyy-MM-dd HH:mm:ss')
+    println "Build finished: ${formattedDate}"
+}

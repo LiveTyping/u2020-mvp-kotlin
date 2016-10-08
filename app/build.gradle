@@ -152,6 +152,8 @@ dependencies {
     compile libraries.threetenabp
     //rx-preferences
     compile libraries.rxpreferences
+    //canny view animator
+    compile libraries.cannyViewAnimator
     //kotlin
     compile libraries.kotlin
 

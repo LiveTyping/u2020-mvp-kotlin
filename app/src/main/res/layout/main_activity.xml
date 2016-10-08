@@ -53,7 +53,7 @@
                 </LinearLayout>
             </android.support.v7.widget.Toolbar>
 
-            <ru.ltst.u2020mvp.ui.misc.BetterViewAnimator
+            <com.livetyping.library.CannyViewAnimator
                 android:id="@+id/trending_animator"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -201,7 +201,7 @@
                         android:layout_height="match_parent"
                         />
                 </android.support.v4.widget.SwipeRefreshLayout>
-            </ru.ltst.u2020mvp.ui.misc.BetterViewAnimator>
+            </com.livetyping.library.CannyViewAnimator>
         </LinearLayout>
     </FrameLayout>
 

@@ -43,6 +43,7 @@ ext.versions = [
         byteunits               : '0.9.1',
         threetenabp             : '1.0.4',
         rxpreferences           : '1.0.2',
+        cannyViewAnimator       : '0.8',
 
         leakCanary              : '1.3.1',
         madge                   : '1.1.4',
@@ -81,6 +82,7 @@ ext.libraries = [
         appCompat               : "com.android.support:appcompat-v7:$versions.supportLibrary",
         supportV4               : "com.android.support:support-v4:$versions.supportLibrary",
         supportAnnotation       : "com.android.support:support-annotations:$versions.supportLibrary",
+        cannyViewAnimator       : "com.livetyping:cannyviewanimator:$versions.cannyViewAnimator",
 
         dagger                  : "com.google.dagger:dagger:$versions.dagger",
         daggerCompiler          : "com.google.dagger:dagger-compiler:$versions.dagger",
